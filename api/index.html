@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Multi-Motors — API & CSV Communauté</title>
+  <style>
+    body{font-family:system-ui,-apple-system,sans-serif;max-width:820px;margin:40px auto;padding:0 20px;line-height:1.6;color:#1e293b}
+    code,pre{background:#f1f5f9;padding:2px 6px;border-radius:6px;font-size:.92em}
+    pre{padding:14px;overflow-x:auto}
+    a{color:#2563eb}
+  </style>
+</head>
+<body>
+  <h1>Multi-Motors — Données publiques FPV</h1>
+  <p>Base de données communautaire de <strong>13819</strong> moteurs brushless FPV (220 marques), mise à jour quotidiennement (2026-11-14T09:49:06Z).</p>
+  <h2>Téléchargement direct & Endpoints</h2>
+  <ul>
+    <li><a href="./moteurs.csv"><code>moteurs.csv</code></a> — Catalogue complet au format CSV (UTF-8)</li>
+    <li><a href="./moteurs.json"><code>moteurs.json</code></a> — Catalogue complet au format JSON</li>
+    <li><a href="./marques.json"><code>marques.json</code></a> — Liste des marques et nombre de modèles</li>
+    <li><a href="./stats.json"><code>stats.json</code></a> — Statistiques globales et date de mise à jour</li>
+  </ul>
+  <h2>Exemple d'appel (JavaScript)</h2>
+  <pre>const res = await fetch("https://raw.githubusercontent.com/TakDai/Multi-Motors-Catalogue/main/api/moteurs.json");
+const data = await res.json();
+console.log(data.count, data.motors[0]);</pre>
+</body>
+</html>

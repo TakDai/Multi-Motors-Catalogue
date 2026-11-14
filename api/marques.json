@@ -1,0 +1,885 @@
+{
+  "updated_at": "2026-11-14T09:49:06Z",
+  "brands": [
+    {
+      "name": "NeuMotors",
+      "count": 1128
+    },
+    {
+      "name": "T-Motor",
+      "count": 634
+    },
+    {
+      "name": "Leomotion",
+      "count": 509
+    },
+    {
+      "name": "DualSky",
+      "count": 453
+    },
+    {
+      "name": "Turnigy",
+      "count": 443
+    },
+    {
+      "name": "EMAX",
+      "count": 403
+    },
+    {
+      "name": "Hacker",
+      "count": 398
+    },
+    {
+      "name": "Tp Power",
+      "count": 375
+    },
+    {
+      "name": "SunnySky",
+      "count": 327
+    },
+    {
+      "name": "Leopard",
+      "count": 325
+    },
+    {
+      "name": "AXIS",
+      "count": 255
+    },
+    {
+      "name": "Kontronik",
+      "count": 242
+    },
+    {
+      "name": "HOBBYKING",
+      "count": 238
+    },
+    {
+      "name": "SCORPION",
+      "count": 238
+    },
+    {
+      "name": "Faigao",
+      "count": 238
+    },
+    {
+      "name": "XNOVA",
+      "count": 234
+    },
+    {
+      "name": "BrotherHobby",
+      "count": 216
+    },
+    {
+      "name": "Tenshock",
+      "count": 202
+    },
+    {
+      "name": "Racerstar",
+      "count": 199
+    },
+    {
+      "name": "FSD-Motor",
+      "count": 172
+    },
+    {
+      "name": "EMP",
+      "count": 171
+    },
+    {
+      "name": "LDPower",
+      "count": 168
+    },
+    {
+      "name": "DYS",
+      "count": 158
+    },
+    {
+      "name": "RCinPower",
+      "count": 152
+    },
+    {
+      "name": "iFlight",
+      "count": 146
+    },
+    {
+      "name": "KEDA",
+      "count": 137
+    },
+    {
+      "name": "MAD",
+      "count": 133
+    },
+    {
+      "name": "Hyperion",
+      "count": 133
+    },
+    {
+      "name": "COBRA",
+      "count": 124
+    },
+    {
+      "name": "HENGLI",
+      "count": 123
+    },
+    {
+      "name": "FLASHHOBBY",
+      "count": 122
+    },
+    {
+      "name": "Mega Motor",
+      "count": 117
+    },
+    {
+      "name": "RCTIMER",
+      "count": 116
+    },
+    {
+      "name": "HET",
+      "count": 108
+    },
+    {
+      "name": "TFL Hobby",
+      "count": 105
+    },
+    {
+      "name": "GS Models",
+      "count": 103
+    },
+    {
+      "name": "Planet-Hobby",
+      "count": 101
+    },
+    {
+      "name": "Exceed RC",
+      "count": 96
+    },
+    {
+      "name": "Maytech",
+      "count": 95
+    },
+    {
+      "name": "X-Team",
+      "count": 92
+    },
+    {
+      "name": "3BHOBBY",
+      "count": 90
+    },
+    {
+      "name": "MultiStar",
+      "count": 87
+    },
+    {
+      "name": "EP Product",
+      "count": 83
+    },
+    {
+      "name": "AEOLIAN",
+      "count": 81
+    },
+    {
+      "name": "Torcman",
+      "count": 78
+    },
+    {
+      "name": "GEPRC",
+      "count": 75
+    },
+    {
+      "name": "ROXXY",
+      "count": 75
+    },
+    {
+      "name": "KDE",
+      "count": 74
+    },
+    {
+      "name": "RedRock",
+      "count": 74
+    },
+    {
+      "name": "BetaFPV",
+      "count": 70
+    },
+    {
+      "name": "Tempest",
+      "count": 68
+    },
+    {
+      "name": "VCI",
+      "count": 65
+    },
+    {
+      "name": "HGLRC",
+      "count": 64
+    },
+    {
+      "name": "Lumenier",
+      "count": 62
+    },
+    {
+      "name": "Flyware",
+      "count": 60
+    },
+    {
+      "name": "BadAss",
+      "count": 59
+    },
+    {
+      "name": "Himax",
+      "count": 59
+    },
+    {
+      "name": "PYRODRONE",
+      "count": 56
+    },
+    {
+      "name": "FHEM",
+      "count": 56
+    },
+    {
+      "name": "Surpass",
+      "count": 56
+    },
+    {
+      "name": "Gartt",
+      "count": 54
+    },
+    {
+      "name": "HappyModel",
+      "count": 53
+    },
+    {
+      "name": "Dymond",
+      "count": 51
+    },
+    {
+      "name": "ProTronik",
+      "count": 51
+    },
+    {
+      "name": "ePower X",
+      "count": 50
+    },
+    {
+      "name": "XPower",
+      "count": 49
+    },
+    {
+      "name": "Infinite",
+      "count": 48
+    },
+    {
+      "name": "4Max",
+      "count": 47
+    },
+    {
+      "name": "EACHINE",
+      "count": 47
+    },
+    {
+      "name": "Pulso",
+      "count": 47
+    },
+    {
+      "name": "Torcster",
+      "count": 47
+    },
+    {
+      "name": "LiPolice",
+      "count": 46
+    },
+    {
+      "name": "E-flite",
+      "count": 45
+    },
+    {
+      "name": "ElectriFly",
+      "count": 44
+    },
+    {
+      "name": "Plettenberg",
+      "count": 43
+    },
+    {
+      "name": "Poly-Tec",
+      "count": 42
+    },
+    {
+      "name": "Team Hunter RC",
+      "count": 42
+    },
+    {
+      "name": "AMAX",
+      "count": 41
+    },
+    {
+      "name": "HOBBYWING",
+      "count": 40
+    },
+    {
+      "name": "Spitz",
+      "count": 39
+    },
+    {
+      "name": "Tomcat",
+      "count": 39
+    },
+    {
+      "name": "FLYWOO",
+      "count": 38
+    },
+    {
+      "name": "Foxy",
+      "count": 37
+    },
+    {
+      "name": "Robbe",
+      "count": 37
+    },
+    {
+      "name": "DIATONE",
+      "count": 36
+    },
+    {
+      "name": "Cheetah",
+      "count": 36
+    },
+    {
+      "name": "Mamba System",
+      "count": 35
+    },
+    {
+      "name": "XOAR",
+      "count": 34
+    },
+    {
+      "name": "NewBeeDrone",
+      "count": 33
+    },
+    {
+      "name": "Avionic",
+      "count": 32
+    },
+    {
+      "name": "Black Widow (ZTW)",
+      "count": 32
+    },
+    {
+      "name": "FMS",
+      "count": 32
+    },
+    {
+      "name": "FLIPSKY",
+      "count": 30
+    },
+    {
+      "name": "iPower",
+      "count": 30
+    },
+    {
+      "name": "Kavan",
+      "count": 28
+    },
+    {
+      "name": "Liomax",
+      "count": 28
+    },
+    {
+      "name": "Quanum",
+      "count": 28
+    },
+    {
+      "name": "Esprit Model",
+      "count": 27
+    },
+    {
+      "name": "Pichler",
+      "count": 27
+    },
+    {
+      "name": "RUSH",
+      "count": 26
+    },
+    {
+      "name": "D-Power",
+      "count": 26
+    },
+    {
+      "name": "Suppo",
+      "count": 26
+    },
+    {
+      "name": "Extron",
+      "count": 24
+    },
+    {
+      "name": "HobbyStar",
+      "count": 24
+    },
+    {
+      "name": "Cyclon",
+      "count": 23
+    },
+    {
+      "name": "Lehner",
+      "count": 23
+    },
+    {
+      "name": "RCX",
+      "count": 22
+    },
+    {
+      "name": "FlyFishRC",
+      "count": 21
+    },
+    {
+      "name": "LDARC",
+      "count": 21
+    },
+    {
+      "name": "Aveox",
+      "count": 21
+    },
+    {
+      "name": "Peggy Pepper",
+      "count": 21
+    },
+    {
+      "name": "MotrolFly",
+      "count": 20
+    },
+    {
+      "name": "AIRTEK",
+      "count": 19
+    },
+    {
+      "name": "DinoPower",
+      "count": 19
+    },
+    {
+      "name": "PowerHD",
+      "count": 19
+    },
+    {
+      "name": "Thunder Tiger",
+      "count": 19
+    },
+    {
+      "name": "FPVCYCLE",
+      "count": 18
+    },
+    {
+      "name": "TBS",
+      "count": 18
+    },
+    {
+      "name": "BlackMagic",
+      "count": 18
+    },
+    {
+      "name": "Foxeer",
+      "count": 18
+    },
+    {
+      "name": "Armattan",
+      "count": 16
+    },
+    {
+      "name": "ETHIX",
+      "count": 16
+    },
+    {
+      "name": "Gens ace",
+      "count": 16
+    },
+    {
+      "name": "Karearea",
+      "count": 16
+    },
+    {
+      "name": "O.S.Motor",
+      "count": 16
+    },
+    {
+      "name": "Waypoint",
+      "count": 16
+    },
+    {
+      "name": "THEFPV",
+      "count": 15
+    },
+    {
+      "name": "ARC",
+      "count": 15
+    },
+    {
+      "name": "Astro Flight",
+      "count": 15
+    },
+    {
+      "name": "Tacon",
+      "count": 15
+    },
+    {
+      "name": "TINYWHOOP",
+      "count": 14
+    },
+    {
+      "name": "Detrum",
+      "count": 14
+    },
+    {
+      "name": "Spektrum",
+      "count": 14
+    },
+    {
+      "name": "KO",
+      "count": 13
+    },
+    {
+      "name": "Hemotec",
+      "count": 13
+    },
+    {
+      "name": "Jeti",
+      "count": 13
+    },
+    {
+      "name": "Tarot",
+      "count": 13
+    },
+    {
+      "name": "Xera",
+      "count": 13
+    },
+    {
+      "name": "MB",
+      "count": 12
+    },
+    {
+      "name": "ROTORRIOT",
+      "count": 12
+    },
+    {
+      "name": "SPCMAKER",
+      "count": 12
+    },
+    {
+      "name": "Jamara",
+      "count": 12
+    },
+    {
+      "name": "Roton",
+      "count": 12
+    },
+    {
+      "name": "ROTORGEEKS",
+      "count": 10
+    },
+    {
+      "name": "HiTec",
+      "count": 10
+    },
+    {
+      "name": "MVVS",
+      "count": 10
+    },
+    {
+      "name": "Savox",
+      "count": 10
+    },
+    {
+      "name": "BEEMOTOR",
+      "count": 9
+    },
+    {
+      "name": "HAWKSKY",
+      "count": 9
+    },
+    {
+      "name": "Sub250",
+      "count": 9
+    },
+    {
+      "name": "SpeedyBee",
+      "count": 9
+    },
+    {
+      "name": "DeepSpaceFPV",
+      "count": 9
+    },
+    {
+      "name": "Readytosky",
+      "count": 9
+    },
+    {
+      "name": "RateFPV",
+      "count": 9
+    },
+    {
+      "name": "Unusual Machines",
+      "count": 9
+    },
+    {
+      "name": "GEMFAN",
+      "count": 8
+    },
+    {
+      "name": "ACTRO",
+      "count": 8
+    },
+    {
+      "name": "APEX",
+      "count": 8
+    },
+    {
+      "name": "Gaui",
+      "count": 8
+    },
+    {
+      "name": "mfly",
+      "count": 8
+    },
+    {
+      "name": "Ripmax",
+      "count": 8
+    },
+    {
+      "name": "T-Hobby",
+      "count": 8
+    },
+    {
+      "name": "AIRBOT",
+      "count": 7
+    },
+    {
+      "name": "FPVCREATE",
+      "count": 7
+    },
+    {
+      "name": "UMMAGAWD",
+      "count": 7
+    },
+    {
+      "name": "DarwinFPV",
+      "count": 7
+    },
+    {
+      "name": "RVE",
+      "count": 7
+    },
+    {
+      "name": "Storm",
+      "count": 7
+    },
+    {
+      "name": "weBLEEDfpv",
+      "count": 7
+    },
+    {
+      "name": "DJI",
+      "count": 6
+    },
+    {
+      "name": "Joby Motors",
+      "count": 6
+    },
+    {
+      "name": "AOS",
+      "count": 6
+    },
+    {
+      "name": "HEEWING",
+      "count": 6
+    },
+    {
+      "name": "MEPS",
+      "count": 6
+    },
+    {
+      "name": "GARILA",
+      "count": 5
+    },
+    {
+      "name": "ROTORX",
+      "count": 5
+    },
+    {
+      "name": "Castle",
+      "count": 5
+    },
+    {
+      "name": "Graupner",
+      "count": 5
+    },
+    {
+      "name": "Mini AC",
+      "count": 5
+    },
+    {
+      "name": "Quantum",
+      "count": 5
+    },
+    {
+      "name": "SkyRC",
+      "count": 5
+    },
+    {
+      "name": "Goosky",
+      "count": 5
+    },
+    {
+      "name": "FETTEC",
+      "count": 4
+    },
+    {
+      "name": "TRANSTEC",
+      "count": 4
+    },
+    {
+      "name": "ZOHD",
+      "count": 4
+    },
+    {
+      "name": "ALZRC",
+      "count": 4
+    },
+    {
+      "name": "Avroto",
+      "count": 4
+    },
+    {
+      "name": "Extreme Flight",
+      "count": 4
+    },
+    {
+      "name": "SMC Power",
+      "count": 4
+    },
+    {
+      "name": "Skystars",
+      "count": 4
+    },
+    {
+      "name": "HISINGY",
+      "count": 4
+    },
+    {
+      "name": "HOMFPV",
+      "count": 3
+    },
+    {
+      "name": "REBEL",
+      "count": 3
+    },
+    {
+      "name": "Flyduino",
+      "count": 3
+    },
+    {
+      "name": "Futaba",
+      "count": 3
+    },
+    {
+      "name": "RockAmp",
+      "count": 3
+    },
+    {
+      "name": "Simprop",
+      "count": 3
+    },
+    {
+      "name": "XILO",
+      "count": 3
+    },
+    {
+      "name": "Five33",
+      "count": 3
+    },
+    {
+      "name": "Hummingbird",
+      "count": 3
+    },
+    {
+      "name": "Parallax",
+      "count": 3
+    },
+    {
+      "name": "Droneer",
+      "count": 3
+    },
+    {
+      "name": "OddityRC",
+      "count": 3
+    },
+    {
+      "name": "PROTON-X",
+      "count": 2
+    },
+    {
+      "name": "Engel MT",
+      "count": 2
+    },
+    {
+      "name": "Mikrokopter",
+      "count": 2
+    },
+    {
+      "name": "MP Jet",
+      "count": 2
+    },
+    {
+      "name": "Warhead",
+      "count": 2
+    },
+    {
+      "name": "CADDX",
+      "count": 2
+    },
+    {
+      "name": "OMP Hobby",
+      "count": 2
+    },
+    {
+      "name": "Demon Power System",
+      "count": 2
+    },
+    {
+      "name": "Astrox",
+      "count": 1
+    },
+    {
+      "name": "LIL",
+      "count": 1
+    },
+    {
+      "name": "SONICMODELL",
+      "count": 1
+    },
+    {
+      "name": "STRIX",
+      "count": 1
+    },
+    {
+      "name": "TATTU",
+      "count": 1
+    },
+    {
+      "name": "VIVAFPV",
+      "count": 1
+    },
+    {
+      "name": "MicroDAN",
+      "count": 1
+    },
+    {
+      "name": "Street League",
+      "count": 1
+    },
+    {
+      "name": "XLPower",
+      "count": 1
+    }
+  ]
+}

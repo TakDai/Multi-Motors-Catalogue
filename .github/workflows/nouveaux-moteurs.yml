@@ -1,0 +1,164 @@
+name: Recherche quotidienne des nouveaux moteurs
+
+on:
+  schedule:
+    # GitHub lance les tâches programmées avec du retard (jusqu'à 6 h à l'heure pile, très demandée) :
+    # trois horaires décalés du matin (heure de Paris en été : 5 h 23, 6 h 53, 8 h 37) ;
+    # le premier qui démarre fait la recherche, les suivants voient qu'elle est faite et s'arrêtent.
+    - cron: "23 3 * * *"
+    - cron: "53 4 * * *"
+    - cron: "37 6 * * *"
+  # Started by the site every morning (OVH scheduled task api/cron.php, auto=true) or by hand / "run now" (auto=false)
+  workflow_dispatch:
+    inputs:
+      auto:
+        description: "Lancement automatique : ne rien faire si la recherche a déjà réussi aujourd'hui"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: nouveaux-moteurs
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.c.outputs.run }}
+    steps:
+      - id: c
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Lancement à la main : toujours ; programmé ou automatique (site) : seulement si aucune recherche n'a réussi aujourd'hui
+          if [ "${{ github.event_name }}" != "schedule" ] && [ "${{ inputs.auto }}" != "true" ]; then echo "run=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+          n=$(gh run list -R "${{ github.repository }}" --workflow nouveaux-moteurs.yml --status success --created "$(date -u +%F)" --json databaseId --jq length)
+          echo "Recherches réussies aujourd'hui : $n"
+          if [ "$n" = "0" ]; then echo "run=true" >> "$GITHUB_OUTPUT"; else echo "run=false" >> "$GITHUB_OUTPUT"; fi
+
+  scan:
+    needs: check
+    if: needs.check.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # A few days of history: the daily report compares the catalogue with the day before
+          fetch-depth: 60
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Installer les dépendances
+        run: pip install -r requirements.txt
+
+      - name: Importer le tableau Google (nouveaux moteurs, prix, corrections du jour)
+        env:
+          SHEET_ID: 1uuWtvCLQR6indriPs9R-HOwTxC6j2XXDpQrLytxXl1c
+        run: |
+          curl -sSfL -o tableau.xlsx "https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=xlsx"
+          python tools/import_sheet.py tableau.xlsx
+          rm -f tableau.xlsx
+
+      - name: Moteurs vendus en boutique qui manquent au catalogue
+        run: tools/etape.sh python tools/shop_motors.py
+
+      - name: Fiches techniques des sites fabricants (T-Motor…)
+        run: tools/etape.sh python tools/maker_sheets.py
+
+      - name: Compléter les fiches (500 familles par jour)
+        run: tools/etape.sh python tools/enrich.py --limit 500
+
+      - name: Corrections validées par la communauté
+        env:
+          MM_SITE_URL: ${{ secrets.MM_SITE_URL }}
+          MM_EXPORT_KEY: ${{ secrets.MM_EXPORT_KEY }}
+        run: tools/etape.sh python tools/community_sync.py
+
+      - name: Veille IA (nouveaux moteurs et fiches incomplètes)
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          tools/etape.sh python tools/ai_veille.py --enrich-limit 15
+          tools/etape.sh python tools/normalize.py
+          tools/etape.sh python tools/build_api.py
+
+      - name: Publier les nouveaux moteurs (sauvegarde intermédiaire)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add catalogue/ data/ api/
+          if git diff --cached --quiet; then
+            echo "Aucun nouveau moteur à publier à ce stade."
+            exit 0
+          fi
+          git commit -q -m "catalogue: nouveaux moteurs du $(date -u +%Y-%m-%d)"
+          for i in 1 2 3; do
+            git pull --rebase -X theirs origin main && git push && exit 0
+            sleep 10
+          done
+          exit 1
+
+      - name: Prix, photos et vidéos (200 familles par jour, toutes les boutiques)
+        run: |
+          tools/etape.sh python tools/prices.py --limit 200 --workers 8
+          # Every known offer checked again (price of the right variant, stock, product gone) + price history
+          tools/etape.sh python tools/prices_check.py
+          tools/etape.sh python tools/videos.py --limit 300
+          tools/etape.sh python tools/photos.py
+          tools/etape.sh python tools/photos_sites.py
+          tools/etape.sh python tools/photos_dedupe.py
+          tools/etape.sh python tools/photos_frame.py
+          tools/etape.sh python tools/links_check.py
+          tools/etape.sh python tools/bench.py
+
+      - name: Miniatures et fil d'actualité
+        run: |
+          tools/etape.sh python tools/thumbs.py
+          tools/etape.sh python tools/ranking.py
+          tools/etape.sh python tools/logos.py
+          tools/etape.sh python tools/actus.py
+
+      - name: Uniformiser le format des caractéristiques et API
+        run: |
+          tools/etape.sh python tools/normalize.py
+          tools/etape.sh python tools/build_api.py
+
+      - name: Publier sur GitHub
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add catalogue/ assets/motors assets/logos data/ api/
+          if git diff --cached --quiet; then
+            echo "Aucun nouveau moteur aujourd'hui."
+            exit 0
+          fi
+          git commit -q -m "catalogue: nouveaux moteurs du $(date -u +%Y-%m-%d)"
+          # The branch may have moved during the run (a merged pull request): replay on top, the new data wins
+          for i in 1 2 3; do
+            git pull --rebase -X theirs origin main && git push && exit 0
+            sleep 10
+          done
+          exit 1
+
+      - name: Bilan
+        if: always()
+        run: |
+          {
+            echo "## Recherche du $(date -u +%F)"
+            git log -1 --format='Dernière publication : %s (%cr)' origin/main 2>/dev/null || true
+            if [ -s "$RUNNER_TEMP/echecs.md" ]; then echo "### Outils en échec"; cat "$RUNNER_TEMP/echecs.md"; else echo "Tous les outils ont fonctionné."; fi
+          } >> "$GITHUB_STEP_SUMMARY"
+          # Run marked failed (red, email from GitHub) when a tool crashed, after its data was published
+          [ ! -s "$RUNNER_TEMP/echecs.md" ]

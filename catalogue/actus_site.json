@@ -1,0 +1,38 @@
+[
+ {
+  "type": "site",
+  "date": "2026-09-25",
+  "title": "Le catalogue Multi-Motors ouvre avec 2 912 moteurs",
+  "body": "Le tableau communautaire est importé et nettoyé : 2 912 moteurs de 69 marques. Les fiches sont complétées chaque jour à partir des pages des fabricants et des boutiques, avec photos, vidéos de review et prix indicatifs."
+ },
+ {
+  "type": "site",
+  "date": "2026-09-26",
+  "title": "13 593 moteurs, comparateur de prix et galeries photos",
+  "body": "Le tableau complet et les moteurs vendus par une quinzaine de boutiques rejoignent le catalogue : 13 593 moteurs de 215 marques. Nouveautés : comparateur de prix (TTC et HT), plusieurs photos par moteur, vidéos de review, moteurs similaires, filtres avancés, logos des marques, et un espace membre avec avis (qualités et défauts), historique et « Mes moteurs »."
+ },
+ {
+  "type": "site",
+  "date": "2026-09-27",
+  "title": "Fiches techniques des fabricants et bancs d'essai",
+  "body": "Les pages officielles T-Motor sont lues chaque jour : 101 modèles avec leur fiche technique complète, 92 tableaux d'essai (poussée, courant, rendement) et leurs plans cotés en images ; 91 versions manquantes ajoutées et 1 547 caractéristiques complétées. Chaque moteur renvoie vers le site de son fabricant quand il est connu (420 modèles), sinon vers la boutique. Les versions KV d'un même modèle sont regroupées dans les résultats."
+ },
+ {
+  "type": "site",
+  "date": "2026-09-28",
+  "title": "Boutiques françaises, vrai classement des ventes et profils de pilote",
+  "body": "Les prix viennent maintenant de 21 boutiques, dont Drone-FPV-Racer, Studiosport, Drone Doctors, FPV Fly et FPV World en France : 1 054 moteurs ont un prix (2 284 offres, vérifiées une à une), 213 avec une offre en France, et les boutiques de votre pays s'affichent en premier. Les onglets Populaire, Nouveauté et Best-seller suivent les ventes réelles des boutiques, leur date de mise en vente et les vues des tests YouTube ; un badge « Nouveauté » signale les moteurs sortis depuis moins de 3 mois. Les photos sont cadrées sur le moteur, les liens morts réparés et les fiches mal lues corrigées. Les profils gagnent une bannière, le cadrage des images et des infos de pilote (niveau, matériel, drones). Le catalogue compte 4 235 moteurs identifiés, 2 404 modèles de 94 marques."
+ },
+ {
+  "type": "site",
+  "date": "2026-10-30",
+  "title": "Menu du compte réparé et nouvelle veille quotidienne du catalogue",
+  "body": "Sur les fiches moteur, le menu du compte (Mon espace, Mon profil, Modifier mon profil, Administration) était caché sous le haut de la page et ne répondait plus aux clics : il s'ouvre maintenant au-dessus de la fiche, sur ordinateur comme sur mobile. Il se referme aussi dès qu'on choisit une page, ou avec la touche Échap. Nouveau : en plus de la recherche du matin, une veille sur le web passe chaque soir. Elle repère les nouvelles marques et les nouveaux moteurs, complète les caractéristiques manquantes, corrige les valeurs contredites par la fiche du fabricant et ajoute des vidéos de review. Chaque changement est fait d'après une source vérifiée."
+ },
+ {
+  "type": "site",
+  "date": "2026-11-05",
+  "title": "Veille du 5 novembre : 5 moteurs Hobbywing et RCinPower, 15 corrections",
+  "body": "La veille web du jour ajoute 5 moteurs : Hobbywing XRotor 2207.5 1780KV, XRotor 3110 900KV et 1150KV, XRotor 3115 1050KV, et RCinPower EVO 0802 Pro 28800KV. 53 caractéristiques ont été complétées sur 10 fiches (BetaFPV 1105, 1505 et LAVA 1104, Axisflying AF2406-X et AF310, Hobbywing XRotor) et 15 valeurs corrigées d'après les fiches des fabricants : puissance, courant et résistance de l'AF2406-X 2080KV, diamètre et hauteur de la FlyFishRC Flash 1804 qui étaient inversés, et fixation de la HGLRC Specter 1804 3500KV."
+ }
+]

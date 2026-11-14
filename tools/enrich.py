@@ -1,0 +1,360 @@
+"""Complete the motor catalogue from product pages of FPV shops.
+
+For every motor family (brand + model name) it looks the product up in shops
+that publish their catalogue as JSON (Shopify), reads the "Key: value" lines
+of the product description and fills the EMPTY fields only. Existing values
+are never overwritten. Every added value is logged with its source in
+catalogue/enrichissement.csv, and the date each family was searched is kept in
+catalogue/enrichissement_fait.json: new families first, then the families still
+incomplete are searched again (shops add details and new products) after RECHECK days,
+the oldest search first.
+
+Usage: python tools/enrich.py [--limit N] [--brand EMAX]
+"""
+import argparse, csv, html, json, re, sys, time
+from datetime import date, timedelta
+from pathlib import Path
+import requests
+
+ROOT = Path(__file__).resolve().parent.parent
+CAT = ROOT / "catalogue" / "moteurs.csv"
+LOG = ROOT / "catalogue" / "enrichissement.csv"
+DONE = ROOT / "catalogue" / "enrichissement_fait.json"
+EXTRA_COLS = ["RESISTANCE", "UTILISATION"]
+RECHECK = 30  # days before an incomplete family is searched again
+# A family is complete when every motor has these
+KEY_FIELDS = ["POIDS", "D MOTEUR", "H MOTEUR", "LIPO", "D SHAFT", "ENTRAXE FIX", "CONFIG", "LIEN", "IMG"]
+SHOPS = ["www.racedayquads.com", "pyrodrone.com", "newbeedrone.com", "shop.emax-usa.com",
+         "rushfpv.net", "www.unmannedtechshop.co.uk", "betafpv.com", "rotorriot.com", "www.speedyfpv.com",
+         "www.fpvfaster.com", "www.quadmula.com", "www.hglrc.com", "www.diatone.us"]
+# Brand stores are only asked about their own motors
+BRAND_SHOPS = {"shop.emax-usa.com": "emax", "betafpv.com": "beta", "rushfpv.net": "rush", "www.hglrc.com": "hglrc", "www.diatone.us": "diatone"}
+# Rows of the sheet without a model name ("1100KV · 48 g") cannot be searched
+UNNAMED = re.compile(r"KV · [\d.]+ g$")
+UA = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36"}
+NOT_MOTOR = re.compile(r"\b(quadcopter|whoop|drone kit|bnf|pnp|rtf|frame|esc|stack|propellers?|props?|"
+                       r"flight controller|receiver|goggles?|camera|battery|bell|screws?|shaft kit|replacement)\b", re.I)
+KV_SPECIFIC = {"POIDS", "AMP", "PUISSANCE", "LIPO", "RESISTANCE"}
+
+session = requests.Session()
+session.headers.update(UA)
+
+
+def get_json(url, **params):
+    for attempt in range(3):
+        try:
+            r = session.get(url, params=params, timeout=20)
+            if r.status_code == 429:
+                time.sleep(5 * (attempt + 1))
+                continue
+            if r.ok:
+                return r.json()
+            return None
+        except (requests.RequestException, ValueError):
+            time.sleep(1)
+    return None
+
+
+def tokens(s):
+    return [t for t in re.findall(r"[a-z0-9]+", s.lower()) if len(t) >= 2 or t.isdigit()]
+
+
+def search(shop, query):
+    data = get_json(f"https://{shop}/search/suggest.json", q=query,
+                    **{"resources[type]": "product", "resources[limit]": 8})
+    try:
+        return [(p["title"], f"https://{shop}{p['url'].split('?')[0]}") for p in data["resources"]["results"]["products"]]
+    except (TypeError, KeyError):
+        return []
+
+
+def product(url):
+    data = get_json(url + ".json")
+    return data.get("product") if data else None
+
+
+# --- Spec parsing ------------------------------------------------------------
+def lines_of(body):
+    t = re.sub(r"<(br|/p|/li|/tr|/h\d|/div)[^>]*>", "\n", body or "", flags=re.I)
+    t = re.sub(r"</t[dh]>\s*<t[dh][^>]*>", ": ", t, flags=re.I)
+    t = html.unescape(re.sub(r"<[^>]+>", " ", t))
+    out = []
+    for l in t.split("\n"):
+        l = re.sub(r"\s+", " ", l).strip(" -•*|\t")
+        if ":" in l and len(l) < 160:
+            k, v = l.split(":", 1)
+            out.append((k.strip().lower(), v.strip()))
+    return out
+
+
+def n(v):
+    m = re.search(r"\d+(?:[.,]\d+)?", v)
+    return m.group(0).replace(",", ".") if m else ""
+
+
+def parse(body, title):
+    specs = {}
+    put = lambda k, v: v and k not in specs and specs.__setitem__(k, v)
+    for k, v in lines_of(body):
+        low = v.lower()
+        if re.search(r"\bweight\b|\bpoids\b", k):
+            if not re.search(r"thrust|prop", k):
+                put("POIDS", n(v))
+        elif re.search(r"(motor )?(dimension|size)s?\b|dia\w* ?[x*] ?len", k) and not re.search(r"stator|shaft|bearing|prop", k):
+            nums = re.findall(r"\d+(?:\.\d+)?", v.replace(",", "."))
+            if len(nums) >= 2 and 5 < float(nums[0]) < 120 and 3 < float(nums[1]) < 120:
+                put("D MOTEUR", nums[0]); put("H MOTEUR", nums[1])
+        elif re.search(r"(bearing )?shaft( diameter| dia|$)|prop shaft|shaft size", k) and "length" not in k:
+            put("D SHAFT", n(v))
+            if re.search(r"\bm5\b", low):
+                put("VIS HEL", "M5")
+            if "hollow" in low:
+                put("TYPE SHAFT", "Creux")
+        elif re.search(r"shaft (length|protruding)|protruding", k):
+            put("L SHAFT", n(v))
+        elif re.search(r"thread|prop adapter|prop nut", k) and re.search(r"\bm\d", low):
+            put("VIS HEL", re.search(r"m\d(?:\.\d)?", low).group(0).upper())
+        elif re.search(r"mount|hole|fixation", k) and "prop" not in k:
+            m = re.search(r"(\d+(?:\.\d+)?)\s*[x*×]\s*(\d+(?:\.\d+)?)", v)
+            if m:
+                put("ENTRAXE FIX", f"{m.group(1)}x{m.group(2)}")
+            elif re.search(r"[φø∅]\s*\d", low):
+                put("ENTRAXE FIX", "Ø" + n(v))
+            s = re.search(r"\bm(\d(?:\.\d)?)\b", low)
+            if s:
+                put("VIS FIX", "M" + s.group(1))
+        elif re.search(r"cells?|lipo|input volt|voltage", k) and not re.search(r"idle|current", k):
+            m = re.search(r"(\d)\s*s?\s*[-~–]\s*(\d)\s*s", low) or re.search(r"(\d)\s*s\b", low)
+            if m:
+                put("LIPO", f"{m.group(1)}S-{m.group(2)}S" if m.lastindex == 2 else f"{m.group(1)}S")
+        elif re.search(r"config|framework|pole|slot", k):
+            m = re.search(r"(\d+)\s*n\s*(\d+)\s*p", low)
+            if m:
+                put("CONFIG", f"{m.group(1)}N{m.group(2)}P")
+        elif re.search(r"lead|wire|cable|outlet", k):
+            g = re.search(r"(\d+)\s*#?\s*awg", low)
+            if g:
+                put("TYPE CABLE", f"{g.group(1)}AWG")
+            ln = re.search(r"(\d+)\s*mm", low)
+            if ln:
+                put("L CABLE", f"{ln.group(1)}mm")
+        elif re.search(r"prop", k) and not re.search(r"thread|adapter|shaft|nut|mount", k):
+            put("HELICE", v[:30])
+        elif re.search(r"(max|peak).*(power|watt)|power.*max|^power", k):
+            put("PUISSANCE", n(v))
+        elif re.search(r"(max|peak).*current|current.*max|max.*amp", k) and "idle" not in k:
+            put("AMP", n(v))
+        elif re.search(r"resistance", k):
+            put("RESISTANCE", v[:20])
+        elif re.search(r"magnet", k):
+            m = re.search(r"n\d{2}\w{0,2}", low)
+            if m:
+                put("AIMANT", m.group(0).upper())
+        elif re.search(r"bell", k):
+            put("CLOCHE", v[:20])
+    # Intended use, only when the product says so
+    intro = re.sub(r"<[^>]+>", " ", body or "")[:400]
+    use = re.search(r"\b(freestyle|racing|cinewhoop|long[- ]range|toothpick|whoop|cinematic)\b", (title + " " + intro).lower())
+    if use:
+        specs["UTILISATION"] = use.group(1).replace("-", " ").title()
+    return specs
+
+
+def plausible(m, col, v):
+    """Reject values that cannot belong to this motor (a mounting pattern read as its size…)."""
+    x, ds, hs = n_(v), n_(m.get("D STATOR")), n_(m.get("H STATOR"))
+    if col == "D MOTEUR" and x is not None and ds and not (ds + 1 <= x <= ds * 1.9):
+        return False
+    if col == "H MOTEUR" and x is not None and hs and not (hs + 2 <= x <= hs * 6 + 10):
+        return False
+    if col == "D SHAFT" and x is not None and ds and not (0.5 <= x <= max(3, ds / 2.5)):
+        return False
+    if col == "CLOCHE" and not re.search(r"\d{4}|alu|carbon|carbone|titan|steel|acier|cnc|unibell", str(v), re.I):
+        return False
+    if col == "POIDS" and x is not None and ds and not (0.2 * ds <= x <= ds ** 2):
+        return False
+    # A weight three times the usual weight of this stator size is a pack, a box or a misread ("100%")
+    if col == "POIDS" and x is not None:
+        med = class_weights().get((m.get("CLASSE") or "").replace(",", ".")[:4])
+        if med and x > 3 * med:
+            return False
+    return True
+
+
+_WEIGHTS = None
+
+
+def class_weights():
+    """Median weight of each stator size in the catalogue (sizes known from at least 8 motors)."""
+    global _WEIGHTS
+    if _WEIGHTS is None:
+        by = {}
+        with (Path(__file__).resolve().parent.parent / "catalogue" / "moteurs.csv").open(encoding="utf-8") as f:
+            for r in csv.DictReader(f):
+                w = n_(r.get("POIDS"))
+                if w and r.get("CLASSE"):
+                    by.setdefault(r["CLASSE"].replace(",", ".")[:4], []).append(w)
+        # Multirotor sizes only (stator up to 24 mm), like tools/normalize.py
+        _WEIGHTS = {c: sorted(ws)[len(ws) // 2] for c, ws in by.items() if len(ws) >= 8 and c[:2].isdigit() and int(c[:2]) <= 24}
+    return _WEIGHTS
+
+
+def n_(v):
+    try:
+        return float(str(v).replace(",", ".").split()[0])
+    except (ValueError, IndexError):
+        return None
+
+
+# --- Matching ----------------------------------------------------------------
+def best_match(brand, name, kvs, shops=None):
+    need = [t for t in tokens(name) if t not in tokens(brand)] or tokens(name)
+    btoks = tokens(brand.replace("-", ""))
+    found = []
+    for shop in shops or SHOPS:
+        if shop in BRAND_SHOPS and BRAND_SHOPS[shop] not in brand.lower():
+            continue
+        for title, url in search(shop, f"{brand} {name}"):
+            tl = title.lower()
+            tt = set(tokens(title)) | set(tokens(title.replace("-", "")))
+            if NOT_MOTOR.search(tl) and "motor" not in tl:
+                continue
+            # Props / frames sold "for" a motor mention the motor too
+            if re.search(r"\b(props?|propellers?|frames?|replacement bell|screws?)\b", tl):
+                continue
+            if not all(t in tt for t in need):
+                continue
+            if btoks and not any(b in tt or b in tl.replace("-", "") for b in btoks):
+                continue
+            kv_hit = [kv for kv in kvs if kv and re.search(rf"\b{kv}\s*kv\b", tl)]
+            found.append((len(kv_hit), shop, title, url, kv_hit))
+        time.sleep(0.3)
+        if any(f[0] for f in found):
+            break
+    found.sort(key=lambda f: -f[0])
+    return found
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--limit", type=int, default=0, help="max families to search this run")
+    ap.add_argument("--brand", default="")
+    ap.add_argument("--audit", action="store_true", help="remove values added by this tool that fail the plausibility checks")
+    ap.add_argument("--shops", default="", help="only these shops (comma separated); families already searched are searched again there")
+    args = ap.parse_args()
+
+    with CAT.open(encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        cols = list(reader.fieldnames)
+        rows = list(reader)
+    for c in EXTRA_COLS:
+        if c not in cols:
+            cols.append(c)
+    # Family -> date of the last search (the first versions kept a plain list: searched long ago)
+    raw = json.loads(DONE.read_text()) if DONE.exists() else {}
+    done = raw if isinstance(raw, dict) else {k: "2000-01-01" for k in raw}
+    if args.audit:
+        return audit(cols, rows)
+
+    families = {}
+    for r in rows:
+        if r.get("NOM") and not UNNAMED.search(r["NOM"]):
+            families.setdefault((r["MARQUE"], r["NOM"]), []).append(r)
+    shops = [h.strip() for h in args.shops.split(",") if h.strip()] or None
+    stale = (date.today() - timedelta(days=RECHECK)).isoformat()
+    incomplete = lambda k: any(not m.get(c) for m in families[k] for c in KEY_FIELDS)
+    todo = [k for k in families if (shops or f"{k[0]}|{k[1]}" not in done or (done[f"{k[0]}|{k[1]}"] < stale and incomplete(k)))
+            and (not args.brand or k[0].lower() == args.brand.lower())]
+    # Never searched first, then the oldest searches
+    todo.sort(key=lambda k: done.get(f"{k[0]}|{k[1]}", ""))
+    if args.limit:
+        todo = todo[: args.limit]
+    fresh = sum(1 for k in todo if f"{k[0]}|{k[1]}" not in done)
+    print(f"{len(todo)} familles à chercher ({fresh} nouvelles, {len(todo) - fresh} incomplètes revérifiées ; {len(families)} au total)", flush=True)
+
+    new_log = []
+    filled_fam = 0
+    for i, (brand, name) in enumerate(todo, 1):
+        members = families[(brand, name)]
+        kvs = [str(int(float(m["KV"]))) if n(m.get("KV", "")) else "" for m in members]
+        try:
+            matches = best_match(brand, name, kvs, shops)
+        except Exception as e:
+            print(f"  erreur {brand} {name}: {e}", file=sys.stderr)
+            matches = []
+        added = 0
+        for _, shop, title, url, kv_hit in matches[:3]:
+            p = product(url)
+            if not p:
+                continue
+            specs = parse(p.get("body_html"), p.get("title", ""))
+            # Size read from a mounting pattern: the height from the same line is wrong too
+            if "D MOTEUR" in specs and members and not plausible(members[0], "D MOTEUR", specs["D MOTEUR"]):
+                specs.pop("D MOTEUR", None)
+                specs.pop("H MOTEUR", None)
+            img = (p.get("images") or [{}])[0].get("src", "")
+            for m, kv in zip(members, kvs):
+                # KV-specific values only go to the matching KV (or a single-KV family)
+                kv_ok = kv in kv_hit or (len(members) == 1 and not kv_hit)
+                for col, v in specs.items():
+                    if col in KV_SPECIFIC and not kv_ok:
+                        continue
+                    if not plausible(m, col, v):
+                        continue
+                    if v and not m.get(col):
+                        m[col] = v
+                        new_log.append({"REF": m["REF"], "CHAMP": col, "VALEUR": v, "SOURCE": url})
+                        added += 1
+                if kv_ok or len(matches) == 1:
+                    for col, v in (("LIEN", url), ("IMG", img)):
+                        if v and not m.get(col):
+                            m[col] = v
+                            new_log.append({"REF": m["REF"], "CHAMP": col, "VALEUR": v, "SOURCE": url})
+                            added += 1
+        done[f"{brand}|{name}"] = date.today().isoformat()
+        filled_fam += bool(added)
+        if i % 25 == 0 or i == len(todo):
+            print(f"{i}/{len(todo)} familles, {filled_fam} complétées, {len(new_log)} valeurs ajoutées", flush=True)
+            save(cols, rows, new_log, done)
+            new_log = []
+    save(cols, rows, new_log, done)
+
+
+def audit(cols, rows):
+    """Clear values this tool added (logged in enrichissement.csv) that cannot belong to their motor."""
+    by_ref = {r["REF"]: r for r in rows}
+    with LOG.open(encoding="utf-8") as f:
+        log = list(csv.DictReader(f))
+    removed = []
+    for l in log:
+        r = by_ref.get(l["REF"])
+        if r and r.get(l["CHAMP"]) == l["VALEUR"] and not plausible(r, l["CHAMP"], l["VALEUR"]):
+            r[l["CHAMP"]] = ""
+            removed.append(l)
+    tmp = CAT.with_suffix(".tmp")
+    with tmp.open("w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=cols, extrasaction="ignore")
+        w.writeheader()
+        w.writerows(rows)
+    tmp.replace(CAT)
+    print(f"{len(removed)} valeurs invraisemblables retirées : " + ", ".join(f"{l['REF']} {l['CHAMP']}={l['VALEUR']}" for l in removed))
+
+
+def save(cols, rows, new_log, done):
+    tmp = CAT.with_suffix(".tmp")
+    with tmp.open("w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=cols, extrasaction="ignore")
+        w.writeheader()
+        w.writerows(rows)
+    tmp.replace(CAT)
+    new = not LOG.exists()
+    with LOG.open("a", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=["REF", "CHAMP", "VALEUR", "SOURCE"])
+        if new:
+            w.writeheader()
+        w.writerows(new_log)
+    DONE.write_text(json.dumps(dict(sorted(done.items())), ensure_ascii=False, separators=(",", ":")))
+
+
+if __name__ == "__main__":
+    main()

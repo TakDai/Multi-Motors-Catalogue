@@ -85,6 +85,9 @@ jobs:
 
       - name: Veille IA (nouveaux moteurs et fiches incomplètes)
         env:
+          GEMINI_KEY_DOUZILS: ${{ secrets.GEMINI_KEY_DOUZILS }}
+          GEMINI_KEY_TOM: ${{ secrets.GEMINI_KEY_TOM }}
+          CLAUDE_KEY_DOUZILS: ${{ secrets.CLAUDE_KEY_DOUZILS }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

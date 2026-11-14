@@ -75,10 +75,10 @@ def _parse_json_block(text: str):
 
 # --- Multi-provider AI client with automatic fallback ------------------------
 
-def _call_gemini(prompt: str, use_search: bool = False) -> tuple[str, str]:
-    api_key = os.environ.get("GEMINI_API_KEY", "").strip()
+def _call_gemini(prompt: str, use_search: bool = False, env_var: str = "GEMINI_API_KEY", label: str = "Gemini") -> tuple[str, str]:
+    api_key = os.environ.get(env_var, "").strip()
     if not api_key:
-        raise RuntimeError("GEMINI_API_KEY absente")
+        raise RuntimeError(f"{env_var} absente")
     model = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
     body: dict = {
@@ -91,11 +91,11 @@ def _call_gemini(prompt: str, use_search: bool = False) -> tuple[str, str]:
         body["generationConfig"]["responseMimeType"] = "application/json"
     r = requests.post(url, json=body, timeout=60)
     if r.status_code != 200:
-        raise RuntimeError(f"Gemini HTTP {r.status_code}: {r.text[:200]}")
+        raise RuntimeError(f"{label} HTTP {r.status_code}: {r.text[:200]}")
     data = r.json()
     parts = data["candidates"][0]["content"]["parts"]
     text = "\n".join(p.get("text", "") for p in parts if "text" in p)
-    return text, f"Gemini ({model})"
+    return text, f"{label} ({model})"
 
 
 def _call_openai_compat(url: str, api_key: str, model: str, label: str, prompt: str) -> tuple[str, str]:
@@ -131,10 +131,10 @@ def _call_openai(prompt: str, use_search: bool = False) -> tuple[str, str]:
     return _call_openai_compat("https://api.openai.com/v1/chat/completions", api_key, model, "OpenAI", prompt)
 
 
-def _call_anthropic(prompt: str, use_search: bool = False) -> tuple[str, str]:
-    api_key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
+def _call_anthropic(prompt: str, use_search: bool = False, env_var: str = "ANTHROPIC_API_KEY", label: str = "Anthropic") -> tuple[str, str]:
+    api_key = os.environ.get(env_var, "").strip()
     if not api_key:
-        raise RuntimeError("ANTHROPIC_API_KEY absente")
+        raise RuntimeError(f"{env_var} absente")
     model = os.environ.get("ANTHROPIC_MODEL", "claude-haiku-4-5-20251001")
     r = requests.post(
         "https://api.anthropic.com/v1/messages",
@@ -147,12 +147,30 @@ def _call_anthropic(prompt: str, use_search: bool = False) -> tuple[str, str]:
         timeout=60,
     )
     if r.status_code != 200:
-        raise RuntimeError(f"Anthropic HTTP {r.status_code}: {r.text[:200]}")
+        raise RuntimeError(f"{label} HTTP {r.status_code}: {r.text[:200]}")
     data = r.json()
-    return data["content"][0]["text"], f"Anthropic ({model})"
+    return data["content"][0]["text"], f"{label} ({model})"
 
 
-PROVIDERS = [_call_gemini, _call_openrouter, _call_openai, _call_anthropic]
+PROVIDERS = [
+    lambda p, use_search=False: _call_gemini(p, use_search=use_search, env_var="GEMINI_KEY_DOUZILS", label="Gemini Douzils"),
+    lambda p, use_search=False: _call_gemini(p, use_search=use_search, env_var="GEMINI_KEY_TOM", label="Gemini Tom"),
+    lambda p, use_search=False: _call_gemini(p, use_search=use_search, env_var="GEMINI_API_KEY", label="Gemini"),
+    lambda p, use_search=False: _call_anthropic(p, use_search=use_search, env_var="CLAUDE_KEY_DOUZILS", label="Claude Douzils"),
+    lambda p, use_search=False: _call_anthropic(p, use_search=use_search, env_var="ANTHROPIC_API_KEY", label="Anthropic"),
+    _call_openrouter,
+    _call_openai,
+]
+
+KEY_VARS = (
+    "GEMINI_KEY_DOUZILS",
+    "GEMINI_KEY_TOM",
+    "GEMINI_API_KEY",
+    "CLAUDE_KEY_DOUZILS",
+    "ANTHROPIC_API_KEY",
+    "OPENROUTER_API_KEY",
+    "OPENAI_API_KEY",
+)
 
 
 def ask_ai(prompt: str, use_search: bool = False) -> tuple[str, str]:
@@ -166,10 +184,7 @@ def ask_ai(prompt: str, use_search: bool = False) -> tuple[str, str]:
 
 
 def has_any_key() -> bool:
-    return any(
-        os.environ.get(k, "").strip()
-        for k in ("GEMINI_API_KEY", "OPENROUTER_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_API_KEY")
-    )
+    return any(os.environ.get(k, "").strip() for k in KEY_VARS)
 
 
 # --- Catalogue helpers -------------------------------------------------------

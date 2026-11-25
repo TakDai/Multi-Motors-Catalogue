@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-24T15:35:07Z",
+  "updated_at": "2026-11-25T13:13:56Z",
   "brands": [
     {
       "name": "NeuMotors",
@@ -102,12 +102,12 @@
       "count": 150
     },
     {
-      "name": "KEDA",
+      "name": "MAD",
       "count": 137
     },
     {
-      "name": "MAD",
-      "count": 136
+      "name": "KEDA",
+      "count": 137
     },
     {
       "name": "Hyperion",
